@@ -1,0 +1,748 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Forms - Zaka RDC</title>
+    <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        
+        :root { 
+            --zaka-green: #2e7d32; 
+            --zaka-gold: #ffd700; 
+            --dark-green: #1b5e20;
+            --sidebar-width: 260px;
+        }
+        
+        body { font-family: 'Segoe UI', sans-serif; margin: 0; background: #f4f7f6; display: flex; }
+
+       
+        .sidebar { 
+            width: var(--sidebar-width); 
+            height: 100vh; 
+            background: var(--dark-green); 
+            color: white; 
+            position: fixed; 
+            transition: 0.3s;
+            overflow-y: auto;
+        }
+        .sidebar-header { 
+            padding: 20px; 
+            text-align: center; 
+            border-bottom: 1px solid rgba(255,255,255,0.1); 
+        }
+        .nav-links { list-style: none; padding: 20px 0; margin: 0; }
+        .nav-links li { 
+            padding: 15px 25px; 
+            cursor: pointer; 
+            display: flex; 
+            align-items: center; 
+            gap: 15px;
+            transition: 0.3s; 
+        }
+        .nav-links li:hover { 
+            background: var(--zaka-green); 
+            border-left: 5px solid var(--zaka-gold); 
+        }
+        .nav-links li.active { background: var(--zaka-green); }
+
+       
+        .main-wrapper { 
+            margin-left: var(--sidebar-width); 
+            width: calc(100% - var(--sidebar-width)); 
+            min-height: 100vh;
+        }
+
+        header {
+            background: white;
+            padding: 15px 30px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .header-left { display: flex; align-items: center; gap: 15px; color: var(--dark-green); }
+        .logo-img { width: 50px; height: 50px; border-radius: 50%; object-fit: cover; border: 2px solid var(--zaka-green); }
+
+        .container { padding: 30px; }
+        .section-header { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center;
+            margin-bottom: 25px;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 10px;
+        }
+
+        .controls { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .filter { display: flex; gap: 10px; }
+        .filter select { padding: 8px; border: 1px solid #ddd; border-radius: 4px; }
+
+        table { width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+        th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #eee; }
+        th { background: var(--dark-green); color: white; font-weight: bold; }
+        tr:hover { background: #f9f9f9; }
+        .badge { 
+            padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; text-transform: uppercase;
+        }
+        .badge-free { background: #e8f5e9; color: #2e7d32; }
+        .badge-sold { background: #ffebee; color: #c62828; }
+
+        .btn {
+            padding: 8px 12px; 
+            border-radius: 6px; 
+            text-decoration: none; 
+            font-weight: bold; 
+            cursor: pointer; 
+            border: none;
+            margin-right: 5px;
+        }
+        .btn-view { background: var(--zaka-green); color: white; }
+        .btn-delete { background: #c62828; color: white; }
+        .btn-add { background: var(--zaka-green); color: white; }
+        .btn-edit { background: #1976d2; color: white; }
+        .btn-cancel { background: #757575; color: white; }
+
+        /* Modal Styles */
+        .modal {
+            display: none; 
+            position: fixed; 
+            z-index: 1000; 
+            left: 0;
+            top: 0;
+            width: 100%; 
+            height: 100%; 
+            overflow: auto; 
+            background-color: rgba(0,0,0,0.5); 
+            animation: fadeIn 0.3s;
+        }
+        
+        @keyframes fadeIn {
+            from {opacity: 0;}
+            to {opacity: 1;}
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            margin: 5% auto;
+            padding: 0;
+            border-radius: 10px;
+            width: 500px;
+            max-width: 90%;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            animation: slideIn 0.3s;
+        }
+        
+        @keyframes slideIn {
+            from {transform: translateY(-50px); opacity: 0;}
+            to {transform: translateY(0); opacity: 1;}
+        }
+
+        .modal-header {
+            padding: 15px 20px;
+            background: var(--dark-green);
+            color: white;
+            border-radius: 10px 10px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h3 {
+            margin: 0;
+            font-size: 18px;
+        }
+
+        .close-modal {
+            color: white;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            line-height: 1;
+        }
+
+        .close-modal:hover {
+            color: var(--zaka-gold);
+        }
+
+        .modal-body {
+            padding: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .form-group input, 
+        .form-group select, 
+        .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+            font-size: 14px;
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .modal-footer {
+            padding: 15px 20px;
+            border-top: 1px solid #eee;
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+
+        /* Action Bar */
+        .action-bar {
+            display: none;
+            background: var(--dark-green);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            align-items: center;
+            justify-content: space-between;
+            animation: slideIn 0.3s;
+        }
+
+        .action-bar.visible {
+            display: flex;
+        }
+
+        .action-bar .selected-count {
+            font-weight: bold;
+        }
+
+        .action-bar .action-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .action-bar .btn {
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            border: none;
+            font-weight: bold;
+        }
+
+        .action-bar .btn-delete-selected {
+            background: #c62828;
+            color: white;
+        }
+
+        .action-bar .btn-edit-selected {
+            background: #1976d2;
+            color: white;
+        }
+
+        /* Checkbox styles */
+        .checkbox-cell {
+            width: 40px;
+            text-align: center;
+        }
+
+        .row-checkbox {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+
+        .select-all-checkbox {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+
+        /* Add Form Button */
+        .btn-add-new {
+            background: var(--zaka-green);
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-add-new:hover {
+            background: var(--dark-green);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <h3>Zaka RDC</h3>
+            <small>Reception Portal</small>
+        </div>
+        <ul class="nav-links">
+            <li onclick="window.location.href='/home'"><i class="fas fa-th-large"></i> Overview</li>
+            <li class="active"><i class="fas fa-file-alt"></i> Forms & Documents </li>
+            <li onclick="window.location.href='/incoming-mail'"><i class="fas fa-envelope"></i> Incoming Mail</li>
+            <li onclick="window.location.href='/outgoing-mail'"><i class="fas fa-paper-plane"></i> Outgoing Mail</li>
+            <li onclick="window.location.href='/call-records'"><i class="fas fa-phone"></i> Call Records</li>
+            <li onclick="window.location.href='/messages'"><i class="fas fa-comments"></i> Messages</li>
+            {% if user_role == 'ITadminS' %}
+            <li onclick="window.location.href='/users'"><i class="fas fa-users"></i> Users</li>
+            <li onclick="window.location.href='/update-master-key'"><i class="fas fa-key"></i> Master Key</li>
+            <li onclick="window.location.href='/reports'"><i class="fas fa-chart-bar"></i> Reports</li>
+            {% endif %}
+            <li onclick="window.location.href='/logout'" style="margin-top: 50px; color: #ffab91;">
+                <i class="fas fa-sign-out-alt"></i> Logout
+            </li>
+        </ul>
+    </div>
+
+    <div class="main-wrapper">
+        <header>
+            <div class="header-left">
+                <img src="/static/logo.jpeg" alt="Logo" class="logo-img">
+                <h2 style="margin: 0;">Forms Management</h2>
+            </div>
+            <div class="user-profile">
+               <span id="display-name">{{ session['fullname'] if session['fullname'] else 'User' }}</span> <i class="fas fa-caret-down"></i>
+            </div>
+        </header>
+
+        <div class="container">
+            <div class="section-header">
+                <h3>All Available Forms</h3>
+                <span>Total: {{ all_forms|length }}</span>
+            </div>
+
+            <div class="controls">
+                <div class="filter">
+                    <label>Filter by Type:</label>
+                    <select id="filter-type" onchange="filterForms()">
+                        <option value="all">All</option>
+                        <option value="Free">Free</option>
+                        <option value="Sold">Sold</option>
+                    </select>
+                </div>
+                {% if user_role in ['IT Admin', 'Receptionist'] %}
+                <button class="btn-add-new" onclick="openAddModal()">
+                    <i class="fas fa-plus"></i> Add New Form
+                </button>
+                {% endif %}
+            </div>
+
+            <!-- Action Bar (appears when items are selected) -->
+            {% if user_role == 'IT Admin' %}
+            <div id="action-bar" class="action-bar">
+                <span class="selected-count"><span id="selected-count">0</span> item(s) selected</span>
+                <div class="action-buttons">
+                    <button class="btn btn-edit-selected" onclick="editSelectedForm()">
+                        <i class="fas fa-edit"></i> Edit
+                    </button>
+                    <button class="btn btn-delete-selected" onclick="deleteSelectedForms()">
+                        <i class="fas fa-trash"></i> Delete Selected
+                    </button>
+                </div>
+            </div>
+            {% endif %}
+
+            <table id="forms-table">
+                <thead>
+                    <tr>
+                        {% if user_role == 'IT Admin' %}
+                        <th class="checkbox-cell">
+                            <input type="checkbox" class="select-all-checkbox" id="select-all" onchange="toggleSelectAll()">
+                        </th>
+                        {% endif %}
+                        <th>Name</th>
+                        <th>Type</th>
+                        <th>Description</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for form in all_forms %}
+                    <tr class="form-row" data-type="{{ form.type }}" data-id="{{ form.id }}">
+                        {% if user_role == 'IT Admin' %}
+                        <td class="checkbox-cell">
+                            <input type="checkbox" class="row-checkbox" value="{{ form.id }}" onchange="updateSelection()">
+                        </td>
+                        {% endif %}
+                        <td>{{ form.name }}</td>
+                        <td><span class="badge badge-{{ 'free' if form.type == 'Free' else 'sold' }}">{{ form.type }}</span></td>
+                        <td>{{ form.description }}</td>
+                        <td>
+                            <button class="btn btn-view" onclick="viewForm({{ form.id }}, '{{ form.type }}', '{{ form.attachment }}')">View / Print</button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Add Form Modal -->
+    <div id="add-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-plus-circle"></i> Add New Form</h3>
+                <span class="close-modal" onclick="closeAddModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="form-name">Form Name *</label>
+                    <input type="text" id="form-name" placeholder="Enter form name" required>
+                </div>
+                <div class="form-group">
+                    <label for="form-type">Type *</label>
+                    <select id="form-type" onchange="toggleKeyField()">
+                        <option value="Free">Free</option>
+                        <option value="Sold">Sold</option>
+                    </select>
+                </div>
+                <div class="form-group" id="key-field" style="display: none;">
+                    <label for="unlock-key">Unlock Key (for Sold forms)</label>
+                    <input type="text" id="unlock-key" placeholder="Enter unlock key">
+                </div>
+                <div class="form-group">
+                    <label for="form-description">Description *</label>
+                    <textarea id="form-description" placeholder="Enter description"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="form-file">Upload File</label>
+                    <input type="file" id="form-file" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-cancel" onclick="closeAddModal()">Cancel</button>
+                <button class="btn btn-add" onclick="addForm()">Submit</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Form Modal -->
+    <div id="edit-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-edit"></i> Edit Form</h3>
+                <span class="close-modal" onclick="closeEditModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="edit-form-id">
+                <div class="form-group">
+                    <label for="edit-form-name">Form Name *</label>
+                    <input type="text" id="edit-form-name" placeholder="Enter form name" required>
+                </div>
+                <div class="form-group">
+                    <label for="edit-form-type">Type *</label>
+                    <select id="edit-form-type" onchange="toggleEditKeyField()">
+                        <option value="Free">Free</option>
+                        <option value="Sold">Sold</option>
+                    </select>
+                </div>
+                <div class="form-group" id="edit-key-field" style="display: none;">
+                    <label for="edit-unlock-key">Unlock Key (for Sold forms)</label>
+                    <input type="text" id="edit-unlock-key" placeholder="Enter unlock key">
+                </div>
+                <div class="form-group">
+                    <label for="edit-form-description">Description *</label>
+                    <textarea id="edit-form-description" placeholder="Enter description"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-cancel" onclick="closeEditModal()">Cancel</button>
+                <button class="btn btn-edit" onclick="saveEditForm()">Save Changes</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function filterForms() {
+            const filter = document.getElementById('filter-type').value;
+            const rows = document.querySelectorAll('.form-row');
+            rows.forEach(row => {
+                if (filter === 'all' || row.dataset.type === filter) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        }
+
+        // Modal functions for Add Form
+        function openAddModal() {
+            document.getElementById('add-modal').style.display = 'block';
+            // Reset form
+            document.getElementById('form-name').value = '';
+            document.getElementById('form-type').value = 'Free';
+            document.getElementById('form-description').value = '';
+            document.getElementById('unlock-key').value = '';
+            document.getElementById('form-file').value = '';
+            document.getElementById('key-field').style.display = 'none';
+        }
+
+        function closeAddModal() {
+            document.getElementById('add-modal').style.display = 'none';
+        }
+
+        function toggleKeyField() {
+            const type = document.getElementById('form-type').value;
+            const keyField = document.getElementById('key-field');
+            keyField.style.display = type === 'Sold' ? 'block' : 'none';
+        }
+
+        function toggleEditKeyField() {
+            const type = document.getElementById('edit-form-type').value;
+            const keyField = document.getElementById('edit-key-field');
+            keyField.style.display = type === 'Sold' ? 'block' : 'none';
+        }
+
+        // Add Form
+        function addForm() {
+            const name = document.getElementById('form-name').value;
+            const type = document.getElementById('form-type').value;
+            const description = document.getElementById('form-description').value;
+            const unlockKey = type === 'Sold' ? document.getElementById('unlock-key').value : null;
+            const fileInput = document.getElementById('form-file');
+
+            if (!name || !description) {
+                alert("Please fill in name and description.");
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('name', name);
+            formData.append('type', type);
+            formData.append('description', description);
+            formData.append('unlock_key', unlockKey || '');
+            
+            if (fileInput.files.length > 0) {
+                formData.append('file', fileInput.files[0]);
+            }
+
+            fetch('/add-form', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert(data.message);
+                if (data.status === 'success') {
+                    closeAddModal();
+                    location.reload();
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert("Could not add form.");
+            });
+        }
+
+        // Selection functions
+        function updateSelection() {
+            const checkboxes = document.querySelectorAll('.row-checkbox:checked');
+            const selectedIds = Array.from(checkboxes).map(cb => parseInt(cb.value));
+            const actionBar = document.getElementById('action-bar');
+            const countSpan = document.getElementById('selected-count');
+            
+            countSpan.textContent = selectedIds.length;
+            
+            if (selectedIds.length > 0) {
+                actionBar.classList.add('visible');
+            } else {
+                actionBar.classList.remove('visible');
+            }
+
+            // Update select all checkbox
+            const totalCheckboxes = document.querySelectorAll('.row-checkbox').length;
+            const selectAllCheckbox = document.getElementById('select-all');
+            selectAllCheckbox.checked = checkboxes.length === totalCheckboxes && totalCheckboxes > 0;
+            selectAllCheckbox.indeterminate = checkboxes.length > 0 && checkboxes.length < totalCheckboxes;
+        }
+
+        function toggleSelectAll() {
+            const selectAll = document.getElementById('select-all');
+            const checkboxes = document.querySelectorAll('.row-checkbox');
+            
+            checkboxes.forEach(cb => {
+                cb.checked = selectAll.checked;
+            });
+            
+            updateSelection();
+        }
+
+        // Delete selected forms
+        function deleteSelectedForms() {
+            const checkboxes = document.querySelectorAll('.row-checkbox:checked');
+            const selectedIds = Array.from(checkboxes).map(cb => parseInt(cb.value));
+
+            if (selectedIds.length === 0) {
+                alert("Please select at least one form to delete.");
+                return;
+            }
+
+            if (confirm(`Are you sure you want to delete ${selectedIds.length} form(s)? This action cannot be undone.`)) {
+                fetch('/delete-forms', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ form_ids: selectedIds })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    alert(data.message);
+                    if (data.status === 'success') {
+                        location.reload();
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert("Could not delete forms.");
+                });
+            }
+        }
+
+        // Edit selected form
+        function editSelectedForm() {
+            const checkboxes = document.querySelectorAll('.row-checkbox:checked');
+            const selectedIds = Array.from(checkboxes).map(cb => parseInt(cb.value));
+
+            if (selectedIds.length === 0) {
+                alert("Please select a form to edit.");
+                return;
+            }
+
+            if (selectedIds.length > 1) {
+                alert("Please select only one form to edit.");
+                return;
+            }
+
+            // Fetch form data
+            fetch('/get-form/' + selectedIds[0])
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    const form = data.form;
+                    document.getElementById('edit-form-id').value = form.id;
+                    document.getElementById('edit-form-name').value = form.name;
+                    document.getElementById('edit-form-type').value = form.type;
+                    document.getElementById('edit-form-description').value = form.description || '';
+                    document.getElementById('edit-unlock-key').value = form.unlock_key || '';
+                    
+                    // Show/hide key field based on type
+                    document.getElementById('edit-key-field').style.display = form.type === 'Sold' ? 'block' : 'none';
+                    
+                    document.getElementById('edit-modal').style.display = 'block';
+                } else {
+                    alert(data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert("Could not load form data.");
+            });
+        }
+
+        function closeEditModal() {
+            document.getElementById('edit-modal').style.display = 'none';
+        }
+
+        function saveEditForm() {
+            const formId = document.getElementById('edit-form-id').value;
+            const name = document.getElementById('edit-form-name').value;
+            const type = document.getElementById('edit-form-type').value;
+            const description = document.getElementById('edit-form-description').value;
+            const unlockKey = type === 'Sold' ? document.getElementById('edit-unlock-key').value : null;
+
+            if (!name || !description) {
+                alert("Please fill in name and description.");
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('name', name);
+            formData.append('type', type);
+            formData.append('description', description);
+            formData.append('unlock_key', unlockKey || '');
+
+            fetch('/edit-form/' + formId, {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert(data.message);
+                if (data.status === 'success') {
+                    closeEditModal();
+                    location.reload();
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert("Could not update form.");
+            });
+        }
+
+        function viewForm(formId, formType, attachment) {
+            if (formType === 'Free') {
+                if (attachment) {
+                    window.open('/static/' + attachment, '_blank');
+                } else {
+                    alert("No attachment available.");
+                }
+                return;
+            }
+            
+            fetch('/get-master-key')
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'error') {
+                    alert("Could not verify access. Please try again.");
+                    return;
+                }
+                
+                const masterKey = data.master_key;
+                let key = prompt("Enter the master key to view this sold form:");
+                
+                if (key === masterKey) {
+                    if (attachment) {
+                        window.open('/static/' + attachment, '_blank');
+                    } else {
+                        alert("No attachment available.");
+                    }
+                } else {
+                    alert("Incorrect master key. Access denied.");
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert("Could not verify access. Please try again.");
+            });
+        }
+
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            if (event.target.classList.contains('modal')) {
+                event.target.style.display = 'none';
+            }
+        }
+    </script>
+</body>
+</html>

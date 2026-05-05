@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Call Records - Zaka RDC</title>
+    <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        /* Reuse your existing sidebar and header styles from home.html/forms.html */
+        :root {
+            --zaka-green: #2e7d32;
+            --zaka-gold: #ffd700;
+            --dark-green: #1b5e20;
+            --sidebar-width: 260px;
+        }
+
+        body { font-family: 'Segoe UI', sans-serif; margin: 0; background: #f4f7f6; display: flex; }
+
+        /* Sidebar */
+        .sidebar {
+            width: var(--sidebar-width);
+            height: 100vh;
+            background: var(--dark-green);
+            color: white;
+            position: fixed;
+            transition: 0.3s;
+            overflow-y: auto;
+        }
+        .sidebar-header {
+            padding: 20px;
+            text-align: center;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        .nav-links { list-style: none; padding: 20px 0; margin: 0; }
+        .nav-links li {
+            padding: 15px 25px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            transition: 0.3s;
+        }
+        .nav-links li:hover {
+            background: var(--zaka-green);
+            border-left: 5px solid var(--zaka-gold);
+        }
+        .nav-links li.active { background: var(--zaka-green); }
+
+        /* Main Content */
+        .main-wrapper {
+            margin-left: var(--sidebar-width);
+            width: calc(100% - var(--sidebar-width));
+            min-height: 100vh;
+        }
+
+        header {
+            background: white;
+            padding: 15px 30px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .header-left { display: flex; align-items: center; gap: 15px; color: var(--dark-green); }
+        .logo-img { width: 50px; height: 50px; border-radius: 50%; object-fit: cover; border: 2px solid var(--zaka-green); }
+
+        .container { padding: 30px; }
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 10px;
+        }
+
+        /* Search and Controls */
+        .controls { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .search { display: flex; gap: 10px; }
+        .search input { padding: 8px; border: 1px solid #ddd; border-radius: 4px; width: 200px; }
+
+        /* Calls Table */
+        table { width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+        th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #eee; }
+        th { background: var(--dark-green); color: white; font-weight: bold; }
+        tr:hover { background: #f9f9f9; }
+
+        .btn {
+            padding: 8px 12px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: bold;
+            cursor: pointer;
+            border: none;
+            margin-right: 5px;
+        }
+        .btn-view { background: var(--zaka-green); color: white; }
+        .btn-add { background: var(--zaka-gold); color: black; }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+        }
+        .modal-content {
+            background-color: white;
+            margin: 5% auto;
+            padding: 25px;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 10px;
+        }
+        .modal-header h3 {
+            margin: 0;
+            color: var(--dark-green);
+        }
+        .close {
+            font-size: 28px;
+            font-weight: bold;
+            color: #aaa;
+            cursor: pointer;
+        }
+        .close:hover { color: #000; }
+        .modal-body {
+            margin-bottom: 20px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #333;
+        }
+        .form-group input, .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+            box-sizing: border-box;
+        }
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+        .btn-cancel {
+            background: #6c757d;
+            color: white;
+            padding: 10px 20px;
+        }
+        .btn-cancel:hover { background: #5a6268; }
+        .btn-submit {
+            background: var(--zaka-green);
+            color: white;
+            padding: 10px 20px;
+        }
+        .btn-submit:hover { background: var(--dark-green); }
+
+    </style>
+</head>
+<body>
+
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <h3>Zaka RDC</h3>
+            <small>Reception Portal</small>
+        </div>
+        <ul class="nav-links">
+            <li onclick="window.location.href='/home'"><i class="fas fa-th-large"></i> Overview</li>
+            <li onclick="window.location.href='/forms'"><i class="fas fa-file-alt"></i> Forms & Documents</li>
+            <li onclick="window.location.href='/incoming-mail'"><i class="fas fa-envelope"></i> Incoming Mail</li>
+            <li onclick="window.location.href='/outgoing-mail'"><i class="fas fa-paper-plane"></i> Outgoing Mail</li>
+            <li class="active"><i class="fas fa-phone"></i> Call Records</li>
+            <li onclick="window.location.href='/messages'"><i class="fas fa-comments"></i> Messages</li>
+            {% if user_role == 'IT Admin' %}
+            <li onclick="window.location.href='/users'"><i class="fas fa-users"></i> Users</li>
+            <li onclick="window.location.href='/update-master-key'"><i class="fas fa-key"></i> Master Key</li>
+            <li onclick="window.location.href='/reports'"><i class="fas fa-chart-bar"></i> Reports</li>
+            {% endif %}
+            <li onclick="window.location.href='/logout'" style="margin-top: 50px; color: #ffab91;">
+                <i class="fas fa-sign-out-alt"></i> Logout
+            </li>
+        </ul>
+    </div>
+
+    <div class="main-wrapper">
+        <header>
+            <div class="header-left">
+                <img src="/static/logo.jpeg" alt="Logo" class="logo-img">
+                <h2 style="margin: 0;">Call Records</h2>
+            </div>
+            <div class="user-profile">
+<span id="display-name">System Admin</span> <i class="fas fa-caret-down"></i>
+            </div>
+        </header>
+
+        <div class="container">
+            <div class="section-header">
+                <h3>All Call Records</h3>
+                <span>Total: {{ all_calls|length }}</span>
+            </div>
+
+            <!-- Controls: Search and Add -->
+            <div class="controls">
+                <div class="search">
+                    <input type="text" id="search-input" placeholder="Search by caller or purpose..." onkeyup="searchCalls()">
+                </div>
+                <button class="btn btn-add" onclick="openAddCallModal()">Add New Call</button>
+            </div>
+
+            <table id="calls-table">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Caller</th>
+                        <th>Duration</th>
+                        <th>Purpose</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for call in all_calls %}
+                    <tr class="call-row" data-id="{{ call.id }}">
+                        <td>{{ call.date.strftime('%b %d, %Y') if call.date else 'N/A' }}</td>
+                        <td>{{ call.caller }}</td>
+                        <td>{{ call.duration }}</td>
+                        <td>{{ call.purpose }}</td>
+                        <td>
+                            <button class="btn btn-view" onclick="viewCall({{ call.id }}, '{{ call.purpose }}')">View</button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Add Call Modal -->
+    <div id="addCallModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-plus-circle"></i> Add New Call Record</h3>
+                <span class="close" onclick="closeAddCallModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="add-caller">Caller Name *</label>
+                    <input type="text" id="add-caller" placeholder="Enter caller name" required>
+                </div>
+                <div class="form-group">
+                    <label for="add-duration">Duration *</label>
+                    <input type="text" id="add-duration" placeholder="e.g., 5 min" required>
+                </div>
+                <div class="form-group">
+                    <label for="add-purpose">Purpose</label>
+                    <textarea id="add-purpose" placeholder="Enter call purpose"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-cancel" onclick="closeAddCallModal()">Cancel</button>
+                <button class="btn btn-submit" onclick="submitAddCall()">Add Call</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function searchCalls() {
+            const query = document.getElementById('search-input').value.toLowerCase();
+            const rows = document.querySelectorAll('.call-row');
+            rows.forEach(row => {
+                const caller = row.cells[1].textContent.toLowerCase();
+                const purpose = row.cells[3].textContent.toLowerCase();
+                if (caller.includes(query) || purpose.includes(query)) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        }
+
+        // Modal functions for Add Call
+        function openAddCallModal() {
+            document.getElementById('addCallModal').style.display = 'block';
+            // Reset form
+            document.getElementById('add-caller').value = '';
+            document.getElementById('add-duration').value = '';
+            document.getElementById('add-purpose').value = '';
+        }
+
+        function closeAddCallModal() {
+            document.getElementById('addCallModal').style.display = 'none';
+        }
+
+        function submitAddCall() {
+            const caller = document.getElementById('add-caller').value;
+            const duration = document.getElementById('add-duration').value;
+            const purpose = document.getElementById('add-purpose').value;
+
+            if (!caller || !duration) {
+                alert("Please fill in caller name and duration.");
+                return;
+            }
+
+            fetch('/add-call', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ caller, duration, purpose })
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert(data.message);
+                if (data.status === 'success') {
+                    closeAddCallModal();
+                    location.reload();
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert("Could not add call.");
+            });
+        }
+
+        function viewCall(id, purpose) {
+            alert("Call Purpose:\n" + purpose);
+        }
+
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            if (event.target.classList.contains('modal')) {
+                event.target.style.display = 'none';
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}">
+    <title>Login - Zaka Rural District Council</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: url('/static/1.jpeg') no-repeat center center fixed;
+            background-size: cover; 
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+
+        .login-container {
+            background: rgba(255, 255, 255, 0.1); 
+            backdrop-filter: blur(10px); 
+            -webkit-backdrop-filter: blur(10px);
+            padding: 50px;
+            border-radius: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            width: 100%;
+            max-width: 350px;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+        }
+
+        h1 {
+            color: white;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            font-size: 22px;
+            margin-bottom: 30px;
+        }
+
+        label {
+            color: white;
+            text-align: left;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        input {
+            background: rgba(255, 255, 255, 0.9);
+            border: none;
+            padding: 12px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+            outline: none;
+        }
+
+        button {
+            padding: 12px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        button:hover {
+            background-color: #45a049;
+            transform: scale(1.02);
+        }
+
+        .footer-text {
+            margin-top: 25px;
+            color: white;
+            font-size: 13px;
+        }
+
+        .footer-text a {
+            color: #afffa3;
+            text-decoration: none;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="login-container">
+        <h1>Zaka RDC Reception</h1>
+        
+        <label>Username</label>
+        <input type="text" id="username" placeholder="Username">
+        
+        <label>Password</label>
+        <input type="password" id="password" placeholder="Password">
+        
+        <button onclick="login()">Login</button>
+        
+        <div class="footer-text">
+            <p>Admin/IT authorization required.</p>
+        </div>
+    </div>
+
+    <script>
+    function login() {
+        // Get the values from the inputs
+        const usernameValue = document.getElementById('username').value;
+        const passwordValue = document.getElementById('password').value;
+
+        // Basic check to make sure fields aren't empty
+        if (!usernameValue || !passwordValue) {
+            alert("Please fill in both fields.");
+            return;
+        }
+
+        // Send data to Python (app.py)
+        fetch('/login', {
+            method: 'POST',
+            body: JSON.stringify({ 
+                username: usernameValue, // Matches the variable above
+                password: passwordValue  // Matches the variable above
+            }),
+            headers: { 'Content-Type': 'application/json' }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === "success") {
+                console.log('Login success - redirecting to ' + (data.redirect || '/home'));
+                // If Python says 'success', move to the page the server tells us!
+                window.location.href = data.redirect || "/home";
+            } else {
+                // If Python says 'error', show the message
+                alert(data.message); 
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert("Something went wrong with the connection.");
+        });
+    }
+</script>
+
+</body>
+</html>

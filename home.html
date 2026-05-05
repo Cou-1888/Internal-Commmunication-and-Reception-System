@@ -1,0 +1,873 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zaka RDC - Home Portal</title>
+    <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root { 
+            --zaka-green: #2e7d32; 
+            --zaka-gold: #ffd700; 
+            --dark-green: #1b5e20;
+            --sidebar-width: 260px;
+        }
+        
+        body { font-family: 'Segoe UI', sans-serif; margin: 0; background: #f4f7f6; display: flex; }
+
+        .sidebar { 
+            width: var(--sidebar-width); 
+            height: 100vh; 
+            background: var(--dark-green); 
+            color: white; 
+            position: fixed; 
+            transition: 0.3s;
+            overflow-y: auto;
+        }
+        .sidebar-header { 
+            padding: 20px; 
+            text-align: center; 
+            border-bottom: 1px solid rgba(255,255,255,0.1); 
+        }
+        .nav-links { list-style: none; padding: 20px 0; margin: 0; }
+        .nav-links li { 
+            padding: 15px 25px; 
+            cursor: pointer; 
+            display: flex; 
+            align-items: center; 
+            gap: 15px;
+            transition: 0.3s; 
+        }
+        .nav-links li:hover { 
+            background: var(--zaka-green); 
+            border-left: 5px solid var(--zaka-gold); 
+        }
+
+        .main-wrapper { 
+            margin-left: var(--sidebar-width); 
+            width: calc(100% - var(--sidebar-width)); 
+            min-height: 100vh;
+            padding-top: 20px;
+            position: relative;
+            z-index: 1;
+        }
+
+        header {
+            background: white;
+            padding: 15px 30px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .header-left { display: flex; align-items: center; gap: 15px; color: var(--dark-green); }
+        .logo-img { width: 50px; height: 50px; border-radius: 50%; object-fit: cover; border: 2px solid var(--zaka-green); }
+        
+        .search-box { 
+            flex-grow: 1; 
+            max-width: 450px; 
+            margin: 0 30px; 
+            position: relative; 
+        }
+        .search-box input {
+            width: 100%; 
+            padding: 10px 45px; 
+            border-radius: 30px; 
+            border: 1px solid #ddd; 
+            outline: none; 
+            background: #f9f9f9;
+        }
+        .search-box i { position: absolute; left: 18px; top: 13px; color: #888; }
+
+        /* Top Search Bar with Department Dropdown */
+        .top-search-container {
+            width: 100%;
+            background: var(--dark-green);
+            padding: 20px 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 200;
+        }
+        .top-search-wrapper {
+            max-width: 800px;
+            margin: 0 auto;
+            position: relative;
+        }
+        .top-search-box {
+            width: 100%;
+            padding: 12px 45px;
+            border-radius: 30px;
+            border: none;
+            outline: none;
+            font-size: 16px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .top-search-icon {
+            position: absolute;
+            left: 18px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #888;
+            font-size: 18px;
+        }
+        .department-dropdown {
+            display: none;
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border-radius: 0 0 15px 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+            max-height: 300px;
+            overflow-y: auto;
+            z-index: 201;
+        }
+        .department-dropdown.show {
+            display: block;
+        }
+        .department-item {
+            padding: 12px 20px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border-bottom: 1px solid #eee;
+            transition: 0.2s;
+        }
+        .department-item:hover {
+            background: #e8f5e9;
+            color: var(--dark-green);
+        }
+        .department-item:last-child {
+            border-bottom: none;
+        }
+        .department-item i {
+            color: var(--zaka-green);
+        }
+        .department-item .dept-icon {
+            width: 30px;
+            height: 30px;
+            background: var(--zaka-green);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 12px;
+        }
+        .search-hint {
+            color: #aaa;
+            font-size: 12px;
+            margin-top: 8px;
+            text-align: center;
+        }
+
+        .container { padding: 30px; }
+
+
+        .section-header { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center;
+            margin-bottom: 25px;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 10px;
+        }
+        
+        .overview-grid { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); 
+            gap: 25px; 
+            margin-bottom: 40px;
+            max-width: 100%;
+            overflow-x: hidden;
+            padding: 0 1rem;
+        }
+
+        @media (max-width: 1200px) {
+            .overview-grid {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            .overview-card {
+                max-width: 100%;
+            }
+        }
+        .overview-card {
+            background: white; 
+            padding: 25px; 
+            border-radius: 12px; 
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05); 
+            transition: 0.3s; 
+            border-top: 4px solid var(--zaka-green);
+        }
+        .overview-card:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
+        .overview-card h4 { margin: 0 0 10px 0; color: var(--dark-green); }
+        .overview-card p { color: #666; font-size: 14px; margin: 0 0 15px 0; }
+        .stat-number { font-size: 2em; font-weight: bold; color: var(--zaka-gold); }
+        
+        .overview-card.clickable { cursor: pointer; }
+
+        /* Urgent Overview Card Styles */
+        .overview-card.urgent {
+            border-top-color: #c62828 !important;
+        }
+        .overview-card.urgent h4 i {
+            color: #c62828;
+        }
+        .overview-card.urgent .stat-number {
+            color: #c62828;
+        }
+        
+        table { width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+        th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #eee; }
+        th { background: var(--dark-green); color: white; font-weight: bold; }
+        tr:hover { background: #f9f9f9; }
+        
+        .btn {
+            padding: 8px 12px; 
+            border-radius: 6px; 
+            text-decoration: none; 
+            font-weight: bold; 
+            cursor: pointer; 
+            border: none;
+            margin-right: 5px;
+        }
+        .btn-view { background: var(--zaka-green); color: white; }
+        .btn-lock { background: #444; color: white; }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+        }
+        .modal-content {
+            background-color: white;
+            margin: 5% auto;
+            padding: 25px;
+            border-radius: 8px;
+            width: 70%;
+            max-width: 900px;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+        }
+        .modal-header-custom {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 15px;
+            margin-bottom: 20px;
+        }
+        .modal-header-custom h3 { margin: 0; color: var(--dark-green); }
+        .close { font-size: 28px; font-weight: bold; cursor: pointer; color: #999; }
+        .close:hover { color: #333; }
+
+        /* Message Cards in Modal */
+        .message-card {
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            overflow: hidden;
+            transition: 0.3s;
+        }
+        .message-card:hover { box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .message-card.unread { border-left: 4px solid #f57c00; }
+        .message-card.read { border-left: 4px solid #1565c0; }
+        .msg-header {
+            background: #f5f5f5;
+            padding: 10px 15px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        .msg-dept-sender { font-weight: bold; font-size: 13px; }
+        .msg-body { padding: 15px; background: white; }
+        .msg-subject { font-weight: bold; color: #333; margin-bottom: 10px; }
+        .msg-content { color: #555; line-height: 1.5; white-space: pre-wrap; }
+        .msg-footer {
+            padding: 10px 15px;
+            background: #fafafa;
+            border-top: 1px solid #e0e0e0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .msg-timestamp { font-size: 12px; color: #888; }
+        .msg-actions { display: flex; gap: 8px; }
+
+        /* Mail Cards in Modal */
+        .mail-card {
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            overflow: hidden;
+            transition: 0.3s;
+            border-left: 4px solid var(--zaka-green);
+        }
+        .mail-card:hover { box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .mail-header {
+            background: #f5f5f5;
+            padding: 10px 15px;
+            border-bottom: 1px solid #e0e0e0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .mail-sender { font-weight: bold; font-size: 13px; }
+        .mail-status {
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        .mail-status.pending { background: #fff3e0; color: #f57c00; }
+        .mail-status.received { background: #e8f5e9; color: #2e7d32; }
+        .mail-status.sent { background: #e3f2fd; color: #1565c0; }
+        .mail-body { padding: 15px; background: white; }
+        .mail-subject { font-weight: bold; color: #333; margin-bottom: 10px; }
+        .mail-detail { color: #555; font-size: 13px; margin-bottom: 5px; }
+        .mail-footer {
+            padding: 10px 15px;
+            background: #fafafa;
+            border-top: 1px solid #e0e0e0;
+            font-size: 12px;
+            color: #888;
+        }
+
+        /* Call Cards in Modal */
+        .call-card {
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            overflow: hidden;
+            transition: 0.3s;
+            border-left: 4px solid #7b1fa2;
+        }
+        .call-card:hover { box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .call-header {
+            background: #f5f5f5;
+            padding: 10px 15px;
+            border-bottom: 1px solid #e0e0e0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .call-caller { font-weight: bold; font-size: 13px; }
+        .call-body { padding: 15px; background: white; }
+        .call-detail { color: #555; font-size: 13px; margin-bottom: 5px; }
+        .call-footer {
+            padding: 10px 15px;
+            background: #fafafa;
+            border-top: 1px solid #e0e0e0;
+            font-size: 12px;
+            color: #888;
+        }
+
+        /* Form Cards in Modal */
+        .form-card {
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            overflow: hidden;
+            transition: 0.3s;
+            border-left: 4px solid #f57c00;
+        }
+        .form-card:hover { box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .form-header {
+            background: #f5f5f5;
+            padding: 10px 15px;
+            border-bottom: 1px solid #e0e0e0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .form-name { font-weight: bold; font-size: 13px; }
+        .form-type {
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        .form-type.free { background: #e8f5e9; color: #2e7d32; }
+        .form-type.sold { background: #ffebee; color: #c62828; }
+        .form-body { padding: 15px; background: white; }
+        .form-description { color: #555; font-size: 13px; }
+
+        /* Badge styles */
+        .badge { 
+            padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; text-transform: uppercase;
+        }
+        .badge-urgent { background: #ffebee; color: #c62828; }
+        .badge-normal { background: #e8f5e9; color: #2e7d32; }
+        .badge-read { background: #e3f2fd; color: #1565c0; }
+        .badge-unread { background: #fff3e0; color: #f57c00; }
+
+        .btn-reply { background: #1565c0; color: white; }
+        .btn-mark { background: var(--zaka-gold); color: black; }
+
+        /* Empty state */
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+        }
+        .empty-state i {
+            font-size: 48px;
+            margin-bottom: 15px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <h3>Zaka RDC</h3>
+            <small>Reception Portal</small>
+        </div>
+        <ul class="nav-links">
+            <li onclick="window.location.href='/home'"><i class="fas fa-th-large"></i> Overview</li>
+            <li onclick="window.location.href='/forms'"><i class="fas fa-file-alt"></i> Forms & Documents</li>
+            <li onclick="window.location.href='/incoming-mail'"><i class="fas fa-envelope"></i> Incoming Mail</li>
+            <li onclick="window.location.href='/outgoing-mail'"><i class="fas fa-paper-plane"></i> Outgoing Mail</li>
+            <li onclick="window.location.href='/call-records'"><i class="fas fa-phone"></i> Call Records</li>
+            <li onclick="window.location.href='/messages2'"><i class="fas fa-comments"></i> Messages</li>
+            {% if user_role == 'IT Admin' %}
+            <li onclick="window.location.href='/users'"><i class="fas fa-users"></i> Users</li>
+            <li onclick="window.location.href='/update-master-key'"><i class="fas fa-key"></i> Master Key</li>
+            <li onclick="window.location.href='/reports'"><i class="fas fa-chart-bar"></i> Reports</li>
+            {% endif %}
+            <li onclick="window.location.href='/logout'" style="color: #ffab91; margin-top: 20px;">
+                <i class="fas fa-sign-out-alt"></i> Logout
+            </li>
+        </ul>
+    </div>
+
+    <div class="main-wrapper">
+        <header>
+            <div class="header-left">
+                <img src="/static/logo.jpeg" alt="Logo" class="logo-img">
+                <h2 style="margin: 0;">Reception Desk</h2>
+            </div>
+            
+            <div class="search-box">
+                <i class="fas fa-search"></i>
+                <input type="text" placeholder="Search files, mails, or records...">
+            </div>
+
+            <div class="user-profile">
+                <span id="display-name">{{ session['fullname'] if session['fullname'] else 'User' }}</span> <i class="fas fa-caret-down"></i>
+            </div>
+        </header>
+
+        <div class="container">
+
+            <div class="section-header">
+                <h3>Dashboard Overview</h3>
+                <div style="display: flex; gap: 10px; align-items: center;">
+                    <span>Today: {{ now.strftime('%b %d, %Y') }}</span>
+                </div>
+            </div>
+            
+            <!-- Overview Cards for Quick Stats -->
+            <div class="overview-grid">
+                <div class="overview-card clickable" onclick="showModal('incoming')">
+                    <h4><i class="fas fa-envelope"></i> Incoming Mails</h4>
+                    <p>Total mails received</p>
+                    <div class="stat-number">{{ in_count }}</div>
+                </div>
+                <div class="overview-card clickable" onclick="showModal('outgoing')">
+                    <h4><i class="fas fa-paper-plane"></i> Outgoing Mails</h4>
+                    <p>Total mails sent</p>
+                    <div class="stat-number">{{ out_count }}</div>
+                </div>
+                <div class="overview-card clickable" onclick="showModal('calls')">
+                    <h4><i class="fas fa-phone"></i> Call Records</h4>
+                    <p>Total calls logged</p>
+                    <div class="stat-number">{{ call_count }}</div>
+                </div>
+                <div class="overview-card clickable" onclick="showModal('forms')">
+                    <h4><i class="fas fa-file-alt"></i> Forms Available</h4>
+                    <p>Free and sold forms handled</p>
+                    <div class="stat-number">{{ forms_count }}</div>
+                </div>
+                <div class="overview-card clickable urgent" onclick="showMessagesModal('urgent')">
+                    <h4><i class="fas fa-exclamation-triangle"></i> Urgent Messages</h4>
+                    <p>Messages marked as urgent</p>
+                    <div class="stat-number">{{ urgent_count }}</div>
+                </div>
+                <div class="overview-card clickable inbox" onclick="showMessagesModal('inbox')">
+                    <h4><i class="fas fa-inbox"></i> Inbox Messages</h4>
+                    <p>Regular messages received</p>
+                    <div class="stat-number">{{ inbox_count }}</div>
+                </div>
+                <!-- NEW: Messages Today -->
+                <div class="overview-card clickable" onclick="window.location.href='/messages2'">
+                    <h4><i class="fas fa-comments" style="color: var(--zaka-green);"></i> Messages Today</h4>
+                    <p>Messages created today</p>
+                    <div class="stat-number" style="color: var(--zaka-green);">{{ messages_today }}</div>
+                </div>
+                <!-- NEW: Total Messages -->
+                <div class="overview-card clickable" onclick="window.location.href='/messages2'">
+                    <h4><i class="fas fa-comments"></i> Total Messages</h4>
+                    <p>All messages in system</p>
+                    <div class="stat-number">{{ total_messages }}</div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Messages List Modal (for urgent and inbox) -->
+    <div id="messagesListModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header-custom">
+                <h3 id="modal-list-title">Messages</h3>
+                <span class="close" onclick="closeMessagesModal()">&times;</span>
+            </div>
+            <div id="messages-list-container">
+            </div>
+        </div>
+    </div>
+
+    <!-- Data Modal (for incoming, outgoing, calls, forms) -->
+    <div id="dataModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header-custom">
+                <h3 id="modal-title">Details</h3>
+                <span class="close" onclick="closeModal()">&times;</span>
+            </div>
+            <div id="modal-body">
+            </div>
+        </div>
+    </div>
+    
+    <script>
+    // Pass data from server to JavaScript
+    const incomingMails = {{ incoming|tojson }};
+    const outgoingMails = {{ outgoing|tojson }};
+    const callsData = {{ calls|tojson }};
+    const formsData = {{ forms|tojson }};
+    const urgentMessages = {{ urgent_messages|tojson }};
+    const inboxMessages = {{ inbox_messages|tojson }};
+
+    function formatDate(dateStr) {
+        if (!dateStr) return 'N/A';
+        const date = new Date(dateStr);
+        const options = { month: 'short', day: 'numeric', year: 'numeric' };
+        return date.toLocaleDateString('en-US', options);
+    }
+
+    function formatDateTime(dateStr) {
+        if (!dateStr) return 'N/A';
+        const date = new Date(dateStr);
+        const options = { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' };
+        return date.toLocaleDateString('en-US', options);
+    }
+
+    // Show modal for incoming, outgoing, calls, forms
+    function showModal(type) {
+        const modal = document.getElementById('dataModal');
+        const modalTitle = document.getElementById('modal-title');
+        const modalBody = document.getElementById('modal-body');
+        
+        let html = '';
+        
+        if (type === 'incoming') {
+            modalTitle.innerHTML = '<i class="fas fa-envelope"></i> Incoming Mails';
+            if (incomingMails.length === 0) {
+                html = '<div class="empty-state"><i class="fas fa-envelope-open"></i><p>No incoming mails found</p></div>';
+            } else {
+                incomingMails.forEach(mail => {
+                    html += `
+                    <div class="mail-card">
+                        <div class="mail-header">
+                            <span class="mail-sender"><i class="fas fa-user"></i> ${mail.sender || 'N/A'}</span>
+                            <span class="mail-status ${mail.status ? mail.status.toLowerCase() : 'pending'}">${mail.status || 'Pending'}</span>
+                        </div>
+                        <div class="mail-body">
+                            <div class="mail-subject">${mail.subject || 'No Subject'}</div>
+                            <div class="mail-detail"><i class="fas fa-calendar"></i> ${formatDate(mail.date_received)}</div>
+                        </div>
+                        <div class="mail-footer">
+                            <a href="/incoming-mail" class="btn btn-view" style="padding:5px 10px;font-size:12px;">View Details</a>
+                        </div>
+                    </div>`;
+                });
+            }
+        } else if (type === 'outgoing') {
+            modalTitle.innerHTML = '<i class="fas fa-paper-plane"></i> Outgoing Mails';
+            if (outgoingMails.length === 0) {
+                html = '<div class="empty-state"><i class="fas fa-paper-plane"></i><p>No outgoing mails found</p></div>';
+            } else {
+                outgoingMails.forEach(mail => {
+                    html += `
+                    <div class="mail-card">
+                        <div class="mail-header">
+                            <span class="mail-sender"><i class="fas fa-user"></i> ${mail.recipient || 'N/A'}</span>
+                            <span class="mail-status ${mail.status ? mail.status.toLowerCase() : 'sent'}">${mail.status || 'Sent'}</span>
+                        </div>
+                        <div class="mail-body">
+                            <div class="mail-subject">${mail.subject || 'No Subject'}</div>
+                            <div class="mail-detail"><i class="fas fa-calendar"></i> ${formatDate(mail.date_sent)}</div>
+                        </div>
+                        <div class="mail-footer">
+                            <a href="/outgoing-mail" class="btn btn-view" style="padding:5px 10px;font-size:12px;">View Details</a>
+                        </div>
+                    </div>`;
+                });
+            }
+        } else if (type === 'calls') {
+            modalTitle.innerHTML = '<i class="fas fa-phone"></i> Call Records';
+            if (callsData.length === 0) {
+                html = '<div class="empty-state"><i class="fas fa-phone-slash"></i><p>No call records found</p></div>';
+            } else {
+                callsData.forEach(call => {
+                    html += `
+                    <div class="call-card">
+                        <div class="call-header">
+                            <span class="call-caller"><i class="fas fa-user"></i> ${call.caller || 'N/A'}</span>
+                        </div>
+                        <div class="call-body">
+                            <div class="call-detail"><i class="fas fa-clock"></i> Duration: ${call.duration || 'N/A'}</div>
+                            <div class="call-detail"><i class="fas fa-comment"></i> Purpose: ${call.purpose || 'N/A'}</div>
+                            <div class="call-detail"><i class="fas fa-calendar"></i> ${formatDate(call.date)}</div>
+                        </div>
+                        <div class="call-footer">
+                            <a href="/call-records" class="btn btn-view" style="padding:5px 10px;font-size:12px;">View Details</a>
+                        </div>
+                    </div>`;
+                });
+            }
+        } else if (type === 'forms') {
+            modalTitle.innerHTML = '<i class="fas fa-file-alt"></i> Forms Available';
+            if (formsData.length === 0) {
+                html = '<div class="empty-state"><i class="fas fa-file-excel"></i><p>No forms found</p></div>';
+            } else {
+                formsData.forEach(form => {
+                    html += `
+                    <div class="form-card">
+                        <div class="form-header">
+                            <span class="form-name"><i class="fas fa-file"></i> ${form.name || 'N/A'}</span>
+                            <span class="form-type ${form.type ? form.type.toLowerCase() : 'free'}">${form.type || 'Free'}</span>
+                        </div>
+                        <div class="form-body">
+                            <div class="form-description">${form.description || 'No description'}</div>
+                        </div>
+                    </div>`;
+                });
+            }
+        }
+        
+        modalBody.innerHTML = html;
+        modal.style.display = 'block';
+    }
+
+    function closeModal() {
+        document.getElementById('dataModal').style.display = 'none';
+    }
+
+    // Show messages modal (same as messages page)
+function showMessagesModal(filter) {
+        closeAllModalsExcept('messagesListModal');
+        if (filter === 'urgent') playUrgentBeep();
+        const modal = document.getElementById('messagesListModal');
+        const container = document.getElementById('messages-list-container');
+        const title = document.getElementById('modal-list-title');
+        setModalZIndex('messagesListModal');
+        
+        let filteredMessages = [];
+        if (filter === 'urgent') {
+            filteredMessages = urgentMessages;
+            title.innerHTML = '<i class="fas fa-exclamation-triangle" style="color:#c62828;"></i> Urgent Messages';
+        } else if (filter === 'inbox') {
+            filteredMessages = inboxMessages;
+            title.innerHTML = '<i class="fas fa-inbox" style="color:#1976d2;"></i> Inbox Messages';
+        }
+        
+        if (filteredMessages.length === 0) {
+            container.innerHTML = `
+                <div class="empty-state">
+                    <i class="fas fa-inbox"></i>
+                    <p>No messages found</p>
+                </div>
+            `;
+        } else {
+            let html = '';
+            filteredMessages.forEach(msg => {
+                const isRead = msg.read_at !== null;
+                const timestamp = msg.created_at ? formatDateTime(msg.created_at) : 'N/A';
+                const urgentBadge = msg.is_urgent ? '<span class="badge badge-urgent" style="margin-left:8px;">URGENT</span>' : '';
+                
+                html += `
+                    <div class="message-card ${isRead ? 'read' : 'unread'}" id="msg-card-${msg.id}">
+                        <div class="msg-header">
+                            <span class="msg-dept-sender">${msg.sender_department || 'N/A'} - ${msg.sender_name || 'N/A'}</span>
+                        </div>
+                        <div class="msg-body">
+                            <div class="msg-subject">${msg.subject || 'No Subject'}${urgentBadge}</div>
+                            <div class="msg-content" style="min-height: 40px; word-break: break-word; white-space: pre-wrap;">${msg.message || 'No content'}</div>
+                        </div>
+                        <div class="msg-footer">
+                            <span class="msg-timestamp"><i class="fas fa-clock"></i> ${timestamp}</span>
+                            <div class="msg-actions">
+                                <button class="btn btn-view" onclick="window.location.href='/messages2'">View in Messages</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            container.innerHTML = html;
+        }
+        
+        modal.style.display = 'block';
+    }
+
+function playUrgentBeep() {
+        try {
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
+            oscillator.type = 'sine';
+            
+            gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
+            
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + 0.2);
+            
+            // Beep 3 times
+            setTimeout(() => {
+                const osc2 = audioContext.createOscillator();
+                const gain2 = audioContext.createGain();
+                osc2.connect(gain2);
+                gain2.connect(audioContext.destination);
+                osc2.frequency.setValueAtTime(1000, audioContext.currentTime);
+                osc2.type = 'sine';
+                gain2.gain.setValueAtTime(0.3, audioContext.currentTime);
+                gain2.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
+                osc2.start(audioContext.currentTime);
+                osc2.stop(audioContext.currentTime + 0.2);
+            }, 250);
+            
+            setTimeout(() => {
+                const osc3 = audioContext.createOscillator();
+                const gain3 = audioContext.createGain();
+                osc3.connect(gain3);
+                gain3.connect(audioContext.destination);
+                osc3.frequency.setValueAtTime(1200, audioContext.currentTime + 0.5);
+                osc3.type = 'sine';
+                gain3.gain.setValueAtTime(0.3, audioContext.currentTime + 0.5);
+                gain3.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.7);
+                osc3.start(audioContext.currentTime + 0.5);
+                osc3.stop(audioContext.currentTime + 0.7);
+            }, 500);
+        } catch (e) {
+            console.log('Beep failed:', e);
+        }
+    }
+
+    function closeAllModalsExcept(exceptId) {
+        ['messagesListModal', 'dataModal'].forEach(id => {
+            if (id !== exceptId) {
+                const modal = document.getElementById(id);
+                if (modal) modal.style.display = 'none';
+            }
+        });
+    }
+
+    function setModalZIndex(modalId) {
+        window.modalZIndex = (window.modalZIndex || 0) + 1;
+        document.documentElement.style.setProperty('--modal-z', window.modalZIndex);
+        const modal = document.getElementById(modalId);
+        if (modal) modal.style.zIndex = 1000 + window.modalZIndex;
+    }
+
+    function closeMessagesModal() {
+        document.getElementById('messagesListModal').style.display = 'none';
+    }
+
+    // Close modal when clicking outside
+    window.onclick = function(event) {
+        const messagesModal = document.getElementById('messagesListModal');
+        const dataModal = document.getElementById('dataModal');
+        if (event.target == messagesModal) {
+            messagesModal.style.display = 'none';
+        }
+        if (event.target == dataModal) {
+            dataModal.style.display = 'none';
+        }
+    }
+
+    // Department dropdown functions
+    function showDepartments() {
+        const dropdown = document.getElementById('departmentDropdown');
+        dropdown.classList.add('show');
+    }
+
+    function hideDepartments() {
+        setTimeout(function() {
+            const dropdown = document.getElementById('departmentDropdown');
+            dropdown.classList.remove('show');
+        }, 200);
+    }
+
+    function filterDepartments() {
+        const input = document.getElementById('topSearchInput');
+        const filter = input.value.toLowerCase();
+        const dropdown = document.getElementById('departmentDropdown');
+        const items = dropdown.getElementsByClassName('department-item');
+
+        for (let i = 0; i < items.length; i++) {
+            const text = items[i].textContent || items[i].innerText;
+            if (text.toLowerCase().indexOf(filter) > -1) {
+                items[i].style.display = '';
+            } else {
+                items[i].style.display = 'none';
+            }
+        }
+
+        if (filter.length > 0) {
+            dropdown.classList.add('show');
+        }
+    }
+
+    function selectDepartment(dept) {
+        const input = document.getElementById('topSearchInput');
+        input.value = dept;
+        document.getElementById('departmentDropdown').classList.remove('show');
+        alert('Selected department: ' + dept);
+    }
+
+    // Hide dropdown when clicking outside
+    document.addEventListener('click', function(event) {
+        const dropdown = document.getElementById('departmentDropdown');
+        const input = document.getElementById('topSearchInput');
+        const wrapper = document.querySelector('.top-search-wrapper');
+        
+        if (wrapper && !wrapper.contains(event.target)) {
+            dropdown.classList.remove('show');
+        }
+    });
+    </script>
+</body>
+</html>
+
