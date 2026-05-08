@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <title>Reports - Zaka RDC</title>
+    <style>
+        :root { 
+            --zaka-green: #2e7d32; 
+            --zaka-gold: #ffd700; 
+            --dark-green: #1b5e20;
+            --sidebar-width: 260px;
+        }
+        
+        body { font-family: 'Segoe UI', sans-serif; margin: 0; background: #f4f7f6; display: flex; }
+
+        .sidebar { 
+            width: var(--sidebar-width); 
+            height: 100vh; 
+            background: var(--dark-green); 
+            color: white; 
+            position: fixed; 
+            transition: 0.3s;
+            overflow-y: auto;
+        }
+        .sidebar-header { 
+            padding: 20px; 
+            text-align: center; 
+            border-bottom: 1px solid rgba(255,255,255,0.1); 
+        }
+        .nav-links { list-style: none; padding: 20px 0; margin: 0; }
+        .nav-links li { 
+            padding: 15px 25px; 
+            cursor: pointer; 
+            display: flex; 
+            align-items: center; 
+            gap: 15px;
+            transition: 0.3s; 
+        }
+        .nav-links li:hover { 
+            background: var(--zaka-green); 
+            border-left: 5px solid var(--zaka-gold); 
+        }
+        .nav-links li.active { background: var(--zaka-green); }
+
+        .main-wrapper { 
+            margin-left: var(--sidebar-width); 
+            width: calc(100% - var(--sidebar-width)); 
+            min-height: 100vh;
+        }
+
+        header {
+            background: white;
+            padding: 15px 30px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .header-left { display: flex; align-items: center; gap: 15px; color: var(--dark-green); }
+        .logo-img { width: 50px; height: 50px; border-radius: 50%; object-fit: cover; border: 2px solid var(--zaka-green); }
+
+        .container { 
+            padding: 30px; 
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        .section-header { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center;
+            margin-bottom: 40px;
+            border-bottom: 3px solid var(--zaka-green);
+            padding-bottom: 20px;
+        }
+        .btn {
+            padding: 12px 24px; 
+            border-radius: 8px; 
+            text-decoration: none; 
+            font-weight: bold; 
+            cursor: pointer; 
+            border: none;
+            margin-right: 10px;
+            transition: 0.3s;
+            background: var(--zaka-green); 
+            color: white;
+        }
+        .btn:hover { 
+            background: var(--dark-green);
+            transform: translateY(-2px);
+        }
+
+        .trend-card {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            padding: 40px;
+            text-align: center;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .trend-card h2 { 
+            color: var(--dark-green); 
+            margin-bottom: 10px;
+            font-size: 2.2em;
+        }
+        .trend-card p { 
+            color: #666; 
+            font-size: 1.1em;
+            margin-bottom: 30px;
+        }
+        .chart-container {
+            position: relative;
+            height: 500px;
+            margin-bottom: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .container { padding: 20px; }
+            .chart-container { height: 400px; }
+            .trend-card { padding: 20px; }
+            .section-header { flex-direction: column; gap: 15px; text-align: center; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <h3>Zaka RDC</h3>
+            <small>Reception Portal</small>
+        </div>
+        <ul class="nav-links">
+            <li onclick="window.location.href='/home'"><i class="fas fa-th-large"></i> Overview</li>
+            <li onclick="window.location.href='/forms'"><i class="fas fa-file-alt"></i> Forms & Documents</li>
+            <li onclick="window.location.href='/incoming-mail'"><i class="fas fa-envelope"></i> Incoming Mail</li>
+            <li onclick="window.location.href='/outgoing-mail'"><i class="fas fa-paper-plane"></i> Outgoing Mail</li>
+            <li onclick="window.location.href='/call-records'"><i class="fas fa-phone"></i> Call Records</li>
+            <li onclick="window.location.href='/messages2'"><i class="fas fa-comments"></i> Messages</li>
+            {% if user_role in ['IT Admin', 'CEO'] %}
+            <li onclick="window.location.href='/users'"><i class="fas fa-users"></i> Users</li>
+            <li onclick="window.location.href='/update-master-key'"><i class="fas fa-key"></i> Master Key</li>
+            <li onclick="window.location.href='/reports'"><i class="fas fa-chart-bar"></i> Reports</li>
+            {% endif %}
+          
+            <li onclick="window.location.href='/reports'" class="active"><i class="fas fa-chart-line"></i> Reports</li>
+           
+            <li onclick="window.location.href='/logout'" style="margin-top: auto; color: #ffab91;">
+                <i class="fas fa-sign-out-alt"></i> Logout
+            </li>
+        </ul>
+    </div>
+
+    <div class="main-wrapper">
+        <header>
+            <div class="header-left">
+                <img src="/static/logo.jpeg" alt="Logo" class="logo-img">
+                <h2>Reports</h2>
+                <span style="color: #666; margin-left: 20px;">{{ now.strftime('%B %d, %Y') }}</span>
+            </div>
+            <div class="user-profile">
+                <span>{{ session.get('fullname', 'User') }} ({{ user_role }})</span>
+            </div>
+        </header>
+
+        <div class="container">
+            <div class="section-header">
+                <h3><i class="fas fa-chart-line"></i> Volume Trends (Last 7 Days)</h3>
+                <div>
+                    <button class="btn" onclick="location.reload()">
+                        <i class="fas fa-sync-alt"></i> Refresh Data
+                    </button>
+                </div>
+            </div>
+
+            <div class="trend-card">
+                <h2> Reports for the week</h2>
+              
+                <div class="chart-container">
+                    <canvas id="multiTrendChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        window.trendData = {{ trend_data|tojson|safe }};
+
+        let multiTrendChart;
+
+        function initTrendChart() {
+            const ctx = document.getElementById('multiTrendChart')?.getContext('2d');
+            if (!ctx || window.trendData.length === 0) return;
+
+            // Labels: weekdays short (Mon, Tue...)
+            const labels = window.trendData.map(d => new Date(d.date).toLocaleDateString('en-US', { weekday: 'short' }));
+
+            if (multiTrendChart) multiTrendChart.destroy();
+
+            multiTrendChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'Incoming Mail',
+                            data: window.trendData.map(d => d.incoming),
+                            borderColor: '#4CAF50',
+                            backgroundColor: 'rgba(76, 175, 80, 0.1)',
+                            tension: 0.4,
+                            fill: true,
+                            borderWidth: 3
+                        },
+                        {
+                            label: 'Call Records',
+                            data: window.trendData.map(d => d.calls),
+                            borderColor: '#2196F3',
+                            backgroundColor: 'rgba(33, 150, 243, 0.1)',
+                            tension: 0.4,
+                            fill: true,
+                            borderWidth: 3
+                        },
+                        {
+                            label: 'Urgent Messages',
+                            data: window.trendData.map(d => d.urgent),
+                            borderColor: '#F44336',
+                            backgroundColor: 'rgba(244, 67, 54, 0.1)',
+                            tension: 0.4,
+                            fill: true,
+                            borderWidth: 3
+                        },
+                        {
+                            label: 'Outgoing Mail',
+                            data: window.trendData.map(d => d.outgoing),
+                            borderColor: '#FFEB3B',
+                            backgroundColor: 'rgba(255, 235, 59, 0.2)',
+                            tension: 0.4,
+                            fill: true,
+                            borderWidth: 3
+                        },
+                        {
+                            label: 'General Messages',
+                            data: window.trendData.map(d => d.general),
+                            borderColor: '#9C27B0',
+                            backgroundColor: 'rgba(156, 39, 176, 0.1)',
+                            tension: 0.4,
+                            fill: true,
+                            borderWidth: 3
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: {
+                        intersect: false,
+                        mode: 'index'
+                    },
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Time'
+                            },
+                            grid: { display: false }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: 'Volume (Total Count)'
+                            },
+                            beginAtZero: true,
+                            grid: { color: 'rgba(0,0,0,0.05)' }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top',
+                            labels: {
+                                padding: 20,
+                                usePointStyle: true,
+                                font: { size: 13 }
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(0,0,0,0.8)',
+                            titleColor: 'white',
+                            bodyColor: 'white',
+                            cornerRadius: 8
+                        }
+                    },
+                    animation: {
+                        duration: 2000,
+                        easing: 'easeInOutQuart'
+                    }
+                }
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', initTrendChart);
+    </script>
+</body>
+</html>

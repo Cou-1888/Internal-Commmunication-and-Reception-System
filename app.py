@@ -19,8 +19,10 @@ def get_db_connection():
         host=os.environ.get('DB_HOST', 'localhost'),
         user=os.environ.get('DB_USER', 'root'),
         password=os.environ.get('DB_PASSWORD', 'c@to10%Z'),
-        database=os.environ.get('DB_NAME', 'zaka_rdc_db'),
+        database=os.environ.get('DB_NAME', 'test'),
+        port=int(os.environ.get('DB_PORT', 4000)),
         buffered=True
+        ssl_disabled=False if os.environ.get('DB_HOST') else True
     )
 
 # Ensure admin user exists on startup (only if not already present)

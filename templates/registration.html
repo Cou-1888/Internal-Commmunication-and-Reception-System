@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Register - Zaka RDC</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: url('/static/1.jpeg') no-repeat center center fixed;
+            background-size: cover; 
+            display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0;
+        }
+        .reg-container {
+            background: rgba(255, 255, 255, 0.1); 
+            backdrop-filter: blur(10px);
+            padding: 40px; border-radius: 15px; border: 1px solid rgba(255, 255, 255, 0.2);
+            width: 100%; max-width: 400px; color: white;
+        }
+        input, select {
+            width: 100%; padding: 10px; margin: 10px 0; border-radius: 5px; border: none; box-sizing: border-box;
+        }
+        button {
+            width: 100%; padding: 12px; background: #4CAF50; color: white; border: none; 
+            border-radius: 5px; font-weight: bold; cursor: pointer; margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="reg-container">
+        <h2 style="text-align: center;">Staff Registration</h2>
+        <input type="text" id="fullname" placeholder="Full Name">
+        <input type="text" id="username" placeholder="Choose Username">
+        <input type="password" id="password" placeholder="Create Password">
+        <select id="department">
+            <option value="IT">IT Department</option>
+            <option value="Reception">Reception</option>
+            <option value="Finance">Finance</option>
+            <option value="Housing">Housing</option>
+        </select>
+        <select id="role">
+            <option value="Staff">Staff</option>
+            <option value="Receptionist">Receptionist</option>
+            <option value="IT Admin">IT Admin</option>
+        </select>
+        <button onclick="handleRegister()">Create Account</button>
+        <p style="text-align: center;"><a href="/" style="color: #afffa3; text-decoration: none;">Back to Login</a></p>
+    </div>
+
+    <script>
+        function handleRegister() {
+            const fullname = document.getElementById('fullname').value;
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const department = document.getElementById('department').value;
+            const role = document.getElementById('role').value;
+
+            if(!fullname || !username || !password) return alert("Fill all fields!");
+
+            fetch('/register', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ fullname, username, password, department, role })
+            })
+            .then(res => res.json())
+            .then(data => {
+                alert(data.message);
+                if(data.status === 'success') window.location.href = '/';
+            });
+        }
+    </script>
+</body>
+</html>

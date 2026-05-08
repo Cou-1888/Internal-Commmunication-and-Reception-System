@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <title>Users - Zaka RDC</title>
+    <style>
+        :root { 
+            --zaka-green: #2e7d32; 
+            --zaka-gold: #ffd700; 
+            --dark-green: #1b5e20;
+            --sidebar-width: 260px;
+        }
+        
+        body { font-family: 'Segoe UI', sans-serif; margin: 0; background: #f4f7f6; display: flex; }
+
+        .sidebar { 
+            width: var(--sidebar-width); 
+            height: 100vh; 
+            background: var(--dark-green); 
+            color: white; 
+            position: fixed; 
+            transition: 0.3s;
+        }
+        .sidebar-header { 
+            padding: 20px; 
+            text-align: center; 
+            border-bottom: 1px solid rgba(255,255,255,0.1); 
+        }
+        .nav-links { list-style: none; padding: 20px 0; margin: 0; }
+        .nav-links li { 
+            padding: 15px 25px; 
+            cursor: pointer; 
+            display: flex; 
+            align-items: center; 
+            gap: 15px;
+            transition: 0.3s; 
+        }
+        .nav-links li:hover { 
+            background: var(--zaka-green); 
+            border-left: 5px solid var(--zaka-gold); 
+        }
+        .nav-links li.active { background: var(--zaka-green); }
+
+        .main-wrapper { 
+            margin-left: var(--sidebar-width); 
+            width: calc(100% - var(--sidebar-width)); 
+            min-height: 100vh;
+        }
+
+        header {
+            background: white;
+            padding: 15px 30px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .header-left { display: flex; align-items: center; gap: 15px; color: var(--dark-green); }
+        .logo-img { width: 50px; height: 50px; border-radius: 50%; object-fit: cover; border: 2px solid var(--zaka-green); }
+
+        .container { padding: 30px; }
+        .section-header { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center;
+            margin-bottom: 25px;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 10px;
+        }
+
+        table { width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+        th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #eee; }
+        th { background: var(--dark-green); color: white; font-weight: bold; }
+        tr:hover { background: #f9f9f9; }
+
+        .btn {
+            padding: 8px 12px; 
+            border-radius: 6px; 
+            text-decoration: none; 
+            font-weight: bold; 
+            cursor: pointer; 
+            border: none;
+            margin-right: 5px;
+        }
+        .btn-delete { background: #d32f2f; color: white; }
+        .btn-delete:hover { background: #b71c1c; }
+        
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+        }
+        .modal-content {
+            background-color: white;
+            margin: 5% auto;
+            padding: 25px;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 10px;
+        }
+        .modal-header h3 {
+            margin: 0;
+            color: var(--dark-green);
+        }
+        .close {
+            font-size: 28px;
+            font-weight: bold;
+            color: #aaa;
+            cursor: pointer;
+        }
+        .close:hover { color: #000; }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #333;
+        }
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+            box-sizing: border-box;
+        }
+        .form-group input:focus, .form-group select:focus {
+            outline: none;
+            border-color: var(--zaka-green);
+        }
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        .btn-cancel {
+            background: #6c757d;
+            color: white;
+            padding: 10px 20px;
+        }
+        .btn-cancel:hover { background: #5a6268; }
+        .btn-submit {
+            background: var(--zaka-green);
+            color: white;
+            padding: 10px 20px;
+        }
+        .btn-submit:hover { background: var(--dark-green); }
+    </style>
+</head>
+<body>
+
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <h3>Zaka RDC</h3>
+            <small>Reception Portal</small>
+        </div>
+        <ul class="nav-links">
+            <li onclick="window.location.href='/home'"><i class="fas fa-th-large"></i> Overview</li>
+            <li onclick="window.location.href='/forms'"><i class="fas fa-file-alt"></i> Forms & Documents</li>
+            <li onclick="window.location.href='/incoming-mail'"><i class="fas fa-envelope"></i> Incoming Mail</li>
+            <li onclick="window.location.href='/outgoing-mail'"><i class="fas fa-paper-plane"></i> Outgoing Mail</li>
+            <li onclick="window.location.href='/call-records'"><i class="fas fa-phone"></i> Call Records</li>
+            <li onclick="window.location.href='/messages2'"><i class="fas fa-comments"></i> Messages</li>
+            {% if user_role == 'IT Admin' %}
+            <li onclick="window.location.href='/users'"><i class="fas fa-users"></i> Users</li>
+            <li onclick="window.location.href='/update-master-key'"><i class="fas fa-key"></i> Master Key</li>
+            <li onclick="window.location.href='/reports'"><i class="fas fa-chart-bar"></i> Reports</li>
+            {% endif %}
+            <li onclick="window.location.href='/logout'" style="margin-top: 50px; color: #ffab91;">
+                <i class="fas fa-sign-out-alt"></i> Logout
+            </li>
+        </ul>
+    </div>
+
+    <div class="main-wrapper">
+        <header>
+            <div class="header-left">
+                <img src="/static/logo.jpeg" alt="Logo" class="logo-img">
+                <h2 style="margin: 0;">User Management</h2>
+            </div>
+            <div class="user-profile">
+<span id="display-name">System Admin</span> <i class="fas fa-caret-down"></i>
+            </div>
+        </header>
+
+        <div class="container">
+            <div class="section-header">
+                <h3>All Users</h3>
+                <button class="btn" onclick="openModal()" style="background: var(--zaka-green); color: white;">
+                    <i class="fas fa-user-plus"></i> Add New User
+                </button>
+            </div>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Username</th>
+                        <th>Full Name</th>
+                        <th>Department</th>
+                        <th>Role</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user in all_users %}
+                    <tr>
+                        <td>{{ user.id }}</td>
+                        <td>{{ user.username }}</td>
+                        <td>{{ user.fullname }}</td>
+                        <td>{{ user.department }}</td>
+                        <td>{{ user.role }}</td>
+                        <td>
+                            <button class="btn btn-delete" onclick="deleteUser({{ user.id }}, '{{ user.username }}')">Delete</button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Add User Modal -->
+    <div id="addUserModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-user-plus"></i> Add New User</h3>
+                <span class="close" onclick="closeModal()">&times;</span>
+            </div>
+            <form id="addUserForm" onsubmit="submitUser(event)">
+                <div class="form-group">
+                    <label for="username">Username</label>
+                    <input type="text" id="username" name="username" required placeholder="Enter username">
+                </div>
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" name="password" required placeholder="Enter password">
+                </div>
+                <div class="form-group">
+                    <label for="fullname">Full Name</label>
+                    <input type="text" id="fullname" name="fullname" required placeholder="Enter full name">
+                </div>
+                <div class="form-group">
+                    <label for="department">Department</label>
+                    <select id="department" name="department" required>
+                        <option value="">Select Department</option>
+                        <option value="IT">IT</option>
+                        <option value="Admin">Admin</option>
+                        <option value="HR">HR</option>
+                        <option value="CEO">CEO</option>
+                        <option value="social services">social services</option>
+                        <option value="procurement">procurement</option>
+                        <option value="finance">finance</option>
+                        <option value="stores">stores</option>
+                        <option value="planning">planning</option>
+                        <option value="audit">audit</option>
+                        <option value="mechanics">mechanics</option>
+                        <option value="housing">housing</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="role">Role</label>
+                    <select id="role" name="role" required>
+                        <option value="">Select Role</option>
+                        <option value="Staff">Staff</option>
+                        <option value="Receptionist">Receptionist</option>
+                        <option value="IT Admin">IT Admin</option>
+                    </select>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-cancel" onclick="closeModal()">Cancel</button>
+                    <button type="submit" class="btn btn-submit">Add User</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function openModal() {
+            document.getElementById('addUserModal').style.display = 'block';
+        }
+        
+        function closeModal() {
+            document.getElementById('addUserModal').style.display = 'none';
+            document.getElementById('addUserForm').reset();
+        }
+        
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            if (event.target == document.getElementById('addUserModal')) {
+                closeModal();
+            }
+        }
+        
+        function submitUser(event) {
+            event.preventDefault();
+            
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const fullname = document.getElementById('fullname').value;
+            const department = document.getElementById('department').value;
+            const role = document.getElementById('role').value;
+            
+            fetch('/register', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    username: username,
+                    password: password,
+                    fullname: fullname,
+                    department: department,
+                    role: role
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert(data.message);
+                if (data.status === 'success') {
+                    closeModal();
+                    location.reload();
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert("Could not add user.");
+            });
+        }
+
+        function deleteUser(userId, username) {
+            if (confirm(`Are you sure you want to delete user: ${username}?`)) {
+                fetch(`/delete-user/${userId}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                })
+                .then(response => response.json())
+                .then(data => {
+                    alert(data.message);
+                    if (data.status === 'success') {
+                        location.reload();
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert("Could not delete user.");
+                });
+            }
+        }
+    </script>
+</body>
+</html>
