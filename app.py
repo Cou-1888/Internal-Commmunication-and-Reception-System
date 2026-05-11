@@ -21,7 +21,7 @@ def get_db_connection():
         password=os.environ.get('DB_PASSWORD', 'c@to10%Z'),
         database=os.environ.get('DB_NAME', 'test'),
         port=int(os.environ.get('DB_PORT', 4000)),
-        buffered=True
+        buffered=True,
         ssl_disabled=False if os.environ.get('DB_HOST') else True
     )
 
